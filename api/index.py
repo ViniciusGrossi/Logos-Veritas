@@ -1,6 +1,7 @@
 import os, re, logging
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 import httpx
 
 # Removido token hardcoded por segurança. 
@@ -13,6 +14,22 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """
+    Serve o arquivo index.html na raiz.
+    Isso ajuda no desenvolvimento local.
+    """
+    try:
+        # Tenta ler da raiz (onde o arquivo está agora)
+        path = os.path.join(os.getcwd(), "index.html")
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        return "<h1>Arquivo index.html não encontrado na raiz do projeto.</h1>"
+    except Exception as e:
+        return f"<h1>Erro ao carregar interface: {str(e)}</h1>"
 
 @app.get("/api/consultar")
 async def consultar(cpf: str = Query(...)):
