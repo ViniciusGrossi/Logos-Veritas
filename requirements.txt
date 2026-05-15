@@ -3,3 +3,5 @@ httpx
 pandas
 openpyxl
 python-multipart
+python-dotenv
+uvicorn

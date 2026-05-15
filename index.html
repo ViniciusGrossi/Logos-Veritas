@@ -107,7 +107,30 @@ let allData = [];
 let currentPage = 1;
 const PAGE_SIZE = 20;
 
-document.getElementById('file-input').addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag');
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('drag');
+});
+
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.xlsx')) {
+    handleFile(file);
+  } else {
+    alert("Por favor, importe um arquivo Excel (.xlsx) válido.");
+  }
+});
 
 async function handleFile(file) {
   const data = await file.arrayBuffer();
@@ -181,7 +204,7 @@ function render() {
       <span class="td-nome">${r.nome || '...'}</span>
       <span class="td-nasc">${r.nascimento || '...'}</span>
       <span class="td-sit ${r.status==='err'?'sit-erro':'sit-regular'}">${r.situacao || '—'}</span>
-      <span class="status-pill pill-${r.status}">${r.status==='ok'?'✓ OK':(r.status==='run'?'...':'Wait')}</span>
+      <span class="status-pill pill-${r.status}">${r.status==='ok'?'✓ OK':(r.status==='run'?'...':(r.status==='err'?'Erro':'Wait'))}</span>
     </div>
   `).join('');
 

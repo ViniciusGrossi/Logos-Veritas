@@ -3,9 +3,19 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 import httpx
+from dotenv import load_dotenv
+from pathlib import Path
 
-# Removido token hardcoded por segurança. 
-# O token DEVE ser configurado nas Environment Variables do Vercel como HUBDEV_TOKEN.
+# Tenta carregar o .env da raiz do projeto (um nível acima da pasta /api)
+base_dir = Path(__file__).resolve().parent.parent
+env_path = base_dir / ".env"
+
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    # Fallback para o diretório atual
+    load_dotenv()
+
 HUBDEV_TOKEN = os.getenv("HUBDEV_TOKEN")
 HUBDEV_URL   = "https://ws.hubdodesenvolvedor.com.br/v2/cpf/"
 
