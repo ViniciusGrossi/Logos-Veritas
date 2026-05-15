@@ -1,0 +1,5 @@
+fastapi
+httpx
+pandas
+openpyxl
+python-multipart

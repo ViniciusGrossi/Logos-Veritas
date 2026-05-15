@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Consulta CPF — Logos Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #F97316;
+  --accent-glow: rgba(249, 115, 22, 0.15);
+  --bg: #030303;
+  --card-bg: #0a0a0a;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #e6e1d7;
+  --text-secondary: #737373;
+  --text-muted: #404040;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 50% -20%, #1a100a 0%, #030303 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 60px 20px;
+  overflow-x: hidden;
+}
+.container { max-width: 960px; margin: 0 auto; position: relative; }
+.header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 56px;
+  opacity: 0; animation: fadeInDown 0.8s ease forwards;
+}
+.dot-outer {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent-glow);
+  display: flex; align-items: center; justify-content: center;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2s infinite;
+}
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-secondary); font-weight: 500; }
+.upload-zone {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 64px 32px; text-align: center; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+.upload-zone::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(249, 115, 22, 0.08) 0%, transparent 50%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.upload-zone:hover::before { opacity: 1; }
+.upload-zone:hover, .upload-zone.drag {
+  border-color: var(--accent); transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px var(--accent-glow);
+}
+.upload-icon { font-size: 32px; color: var(--accent); margin-bottom: 20px; filter: drop-shadow(0 0 8px var(--accent-glow)); }
+.upload-title { font-size: 20px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.01em; }
+.upload-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+.upload-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 28px; border-radius: 6px; font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+.btn-primary:hover { background: #fb923c; transform: scale(1.02); box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3); }
+.progress-container { margin-top: 40px; opacity: 0; animation: fadeInUp 0.6s ease forwards; }
+.progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.progress-title { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.badge {
+  font-size: 10px; padding: 4px 12px; border-radius: 100px;
+  font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.badge-running { background: rgba(251, 191, 36, 0.1); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.15); }
+.badge-done    { background: rgba(34, 197, 94, 0.1);  color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.15); }
+.badge-error   { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.15); }
+.progress-track { height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 32px; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: var(--accent); box-shadow: 0 0 12px var(--accent-glow);
+  border-radius: 10px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0%;
+}
+.table-wrap { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.table-head {
+  display: grid;
+  grid-template-columns: 130px 1fr 110px 110px 72px;
+  padding: 12px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+}
+.th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); font-weight: 600; }
+.table-viewport { overflow: hidden; position: relative; min-height: 400px; }
+.table-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 110px 110px 72px;
+  padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  align-items: center; transition: background 0.2s;
+}
+.table-row:hover { background: rgba(255,255,255,0.03); }
+.td-cpf    { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); }
+.td-nome   { font-size: 14px; font-weight: 400; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 16px; }
+.td-nasc   { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); }
+.td-sit    { font-size: 13px; font-weight: 500; }
+.sit-regular { color: #4ade80; }
+.sit-error, .sit-cancelada { color: #f87171; }
+.status-pill {
+  font-size: 10px; padding: 3px 10px; border-radius: 100px;
+  font-weight: 600; text-transform: uppercase; text-align: center;
+}
+.pill-wait { background: var(--border); color: var(--text-secondary); }
+.pill-run  { background: rgba(251, 191, 36, 0.1); color: #FBBF24; animation: blink 1.5s infinite; }
+.pill-ok   { background: rgba(34, 197, 94, 0.1);  color: #4ade80; }
+.pill-err  { background: rgba(248, 113, 113, 0.1); color: #f87171; }
+.skeleton {
+  position: relative; background: rgba(255,255,255,0.03);
+  border-radius: 4px; height: 14px; overflow: hidden;
+}
+.skeleton::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding: 0 4px; }
+.pag-info { font-size: 12px; color: var(--text-secondary); }
+.pag-info span { color: var(--text-primary); font-weight: 600; }
+.pag-controls { display: flex; align-items: center; gap: 8px; }
+.pag-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--card-bg);
+  color: var(--text-primary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.pag-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+.pag-page {
+  min-width: 32px; height: 32px; padding: 0 8px; border-radius: 6px;
+  border: none; background: transparent; color: var(--text-secondary);
+  cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;
+}
+.pag-page.active { background: var(--accent-glow); color: var(--accent); }
+.download-btn {
+  width: 100%; padding: 16px; background: var(--accent); color: #000;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-top: 24px; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
+  transition: all 0.3s;
+}
+.download-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3); }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.7} }
+@keyframes shimmer { 100%{transform:translateX(100%)} }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.6} }
+@keyframes fadeInDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeInUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
+.hidden { display: none !important; }
+.section { margin-bottom: 32px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="dot-outer"><div class="dot"></div></div>
+    <span class="label">Logos Tech — Consulta CPF em Lote</span>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="section-upload" class="section">
+    <div class="upload-zone" id="drop-zone">
+      <input type="file" accept=".xlsx" class="upload-input" id="file-input"/>
+      <div class="upload-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <p class="upload-title">Importar base de CPFs</p>
+      <p class="upload-sub">Arraste sua planilha .xlsx com coluna <strong>cpf</strong> ou clique para navegar</p>
+      <button class="btn btn-primary">Selecionar Arquivo</button>
+    </div>
+  </div>
+
+  <!-- PROCESSING -->
+  <div id="section-processing" class="section hidden">
+    <div class="progress-container">
+      <div class="progress-header">
+        <span class="progress-title">Processando <span id="done-count">0</span> de <span id="total-count">0</span> CPFs</span>
+        <span class="badge badge-running" id="status-badge">Consultando API</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="th">CPF</span>
+          <span class="th">Nome Completo</span>
+          <span class="th">Nascimento</span>
+          <span class="th">Situação</span>
+          <span class="th">Status</span>
+        </div>
+        <div class="table-viewport">
+          <div class="table-body" id="table-body"></div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination">
+        <span class="pag-info">Página <span><span id="pag-current">1</span></span> de <span id="pag-total">1</span></span>
+        <div class="pag-controls">
+          <div class="pag-pages" id="pag-pages"></div>
+          <button class="pag-btn" id="pag-prev" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="pag-btn" id="pag-next" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="download-btn hidden" id="download-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar Resultados (.xlsx)
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API       = 'http://localhost:8001';
+const PAGE_SIZE = 20;
+
+let jobId        = null;
+let pollInterval = null;
+let allRows      = [];
+let totalCpfs    = 0;
+let currentPage  = 1;
+
+// Glow effect
+document.getElementById('drop-zone').addEventListener('mousemove', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty('--x', `${e.clientX - rect.left}px`);
+  e.currentTarget.style.setProperty('--y', `${e.clientY - rect.top}px`);
+});
+
+// Upload
+document.getElementById('file-input').addEventListener('change', e => {
+  if (e.target.files[0]) uploadFile(e.target.files[0]);
+});
+
+const zone = document.getElementById('drop-zone');
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', ()  => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]);
+});
+
+async function uploadFile(file) {
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const res  = await fetch(`${API}/upload`, { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) { alert('Erro: ' + (data.detail || 'Falha no servidor.')); return; }
+
+    jobId       = data.job_id;
+    totalCpfs   = data.total;
+    allRows     = [];
+    currentPage = 1;
+
+    document.getElementById('total-count').textContent = totalCpfs;
+    document.getElementById('section-upload').classList.add('hidden');
+    document.getElementById('section-processing').classList.remove('hidden');
+
+    renderPage(currentPage);
+    updatePagination();
+    pollInterval = setInterval(pollStatus, 4000);
+    pollStatus();
+  } catch(e) {
+    alert('Erro ao conectar no backend. Certifique-se que o servidor está rodando na porta 8001.');
+  }
+}
+
+// Polling
+function pollStatus() {
+  fetch(`${API}/status/${jobId}`)
+    .then(r => r.json())
+    .then(data => {
+      allRows = data.rows || [];
+      document.getElementById('done-count').textContent = data.done || 0;
+      const pct = data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
+      document.getElementById('progress-fill').style.width = pct + '%';
+
+      renderPage(currentPage);
+      updatePagination();
+
+      const badge = document.getElementById('status-badge');
+      if (data.status === 'queued') {
+        badge.textContent = 'Na fila…'; badge.className = 'badge badge-running';
+      } else if (data.status === 'running') {
+        badge.textContent = 'Consultando API'; badge.className = 'badge badge-running';
+      } else if (data.status === 'done') {
+        clearInterval(pollInterval);
+        badge.textContent = 'Concluído'; badge.className = 'badge badge-done';
+        document.getElementById('download-btn').classList.remove('hidden');
+        renderPage(currentPage); updatePagination();
+      } else if (data.status === 'error') {
+        clearInterval(pollInterval);
+        badge.textContent = 'Erro'; badge.className = 'badge badge-error';
+        document.getElementById('download-btn').classList.remove('hidden');
+      }
+    })
+    .catch(err => console.error('Polling error:', err));
+}
+
+// Render
+function renderPage(page) {
+  const body     = document.getElementById('table-body');
+  const start    = (page - 1) * PAGE_SIZE;
+  const end      = start + PAGE_SIZE;
+  const pageRows = allRows.slice(start, end);
+  const pending  = Math.min(PAGE_SIZE - pageRows.length, totalCpfs - (start + pageRows.length));
+
+  let html = '';
+  pageRows.forEach(r => {
+    const sitCls   = r.situacao ? 'sit-' + r.situacao.toLowerCase().replace(/\s+/g,'-') : 'sit-muted';
+    const pillCls  = r.erro ? 'pill-err' : (r.nome ? 'pill-ok' : 'pill-run');
+    const pillText = r.erro ? 'Erro'     : (r.nome ? '✓ OK'   : '…');
+    html += `
+      <div class="table-row">
+        <span class="td-cpf">${r.cpf || '—'}</span>
+        <span class="td-nome">${r.nome || '<div class="skeleton" style="width:160px"></div>'}</span>
+        <span class="td-nasc">${r.data_nascimento || (r.nome ? '—' : '<div class="skeleton" style="width:80px"></div>')}</span>
+        <span class="td-sit ${sitCls}">${r.situacao || '—'}</span>
+        <span class="status-pill ${pillCls}">${pillText}</span>
+      </div>`;
+  });
+
+  for (let i = 0; i < pending; i++) {
+    html += `
+      <div class="table-row">
+        <span class="td-cpf">—</span>
+        <span class="td-nome"><div class="skeleton" style="width:180px"></div></span>
+        <span class="td-nasc"><div class="skeleton" style="width:80px"></div></span>
+        <span class="td-sit">—</span>
+        <span class="status-pill pill-wait">Wait</span>
+      </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+// Pagination
+function totalPages() { return Math.max(1, Math.ceil(totalCpfs / PAGE_SIZE)); }
+
+function updatePagination() {
+  const total = totalPages();
+  document.getElementById('pag-current').textContent = currentPage;
+  document.getElementById('pag-total').textContent   = total;
+  document.getElementById('pag-prev').disabled = currentPage <= 1;
+  document.getElementById('pag-next').disabled = currentPage >= total;
+  const pages = document.getElementById('pag-pages');
+  pages.innerHTML = '';
+  buildPageRange(currentPage, total, 5).forEach(p => {
+    if (p === '…') {
+      const el = document.createElement('span');
+      el.textContent = '…';
+      el.style.cssText = 'color:var(--text-muted);font-size:11px;padding:0 8px;';
+      pages.appendChild(el);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'pag-page' + (p === currentPage ? ' active' : '');
+      btn.textContent = p;
+      btn.addEventListener('click', () => { if (p !== currentPage) goToPage(p); });
+      pages.appendChild(btn);
+    }
+  });
+}
+
+function buildPageRange(current, total, maxVisible) {
+  if (total <= maxVisible) return Array.from({length: total}, (_, i) => i + 1);
+  const half = 2;
+  let start = Math.max(1, current - half);
+  let end   = Math.min(total, start + maxVisible - 1);
+  if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+  const range = [];
+  if (start > 1) { range.push(1); if (start > 2) range.push('…'); }
+  for (let i = start; i <= end; i++) range.push(i);
+  if (end < total) { if (end < total - 1) range.push('…'); range.push(total); }
+  return range;
+}
+
+function goToPage(page) { currentPage = page; renderPage(currentPage); updatePagination(); }
+document.getElementById('pag-prev').addEventListener('click', () => goToPage(currentPage - 1));
+document.getElementById('pag-next').addEventListener('click', () => goToPage(currentPage + 1));
+document.getElementById('download-btn').addEventListener('click', () => window.open(`${API}/download/${jobId}`, '_blank'));
+</script>
+</body>
+</html>
