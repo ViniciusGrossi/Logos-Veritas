@@ -3,7 +3,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 
-HUBDEV_TOKEN = os.getenv("HUBDEV_TOKEN", "206629495DtZhNyBxGl373063288")
+# Removido token hardcoded por segurança. 
+# O token DEVE ser configurado nas Environment Variables do Vercel como HUBDEV_TOKEN.
+HUBDEV_TOKEN = os.getenv("HUBDEV_TOKEN")
 HUBDEV_URL   = "https://ws.hubdodesenvolvedor.com.br/v2/cpf/"
 
 logging.basicConfig(level=logging.INFO)
@@ -14,11 +16,14 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 @app.get("/api/consultar")
 async def consultar(cpf: str = Query(...)):
-    """
-    Consulta um único CPF. 
-    O navegador chamará este endpoint em loop.
-    Isso evita o timeout de 60s do Vercel.
-    """
+    if not HUBDEV_TOKEN:
+        return {
+            "cpf": cpf, 
+            "nome": None, 
+            "situacao": "ERRO", 
+            "erro": "Configuração Pendente: HUBDEV_TOKEN não encontrado no servidor."
+        }
+
     cpf_clean = re.sub(r"\D", "", cpf)
     if len(cpf_clean) != 11:
         return {"cpf": cpf, "nome": None, "situacao": "ERRO", "erro": "CPF Inválido"}
@@ -54,5 +59,3 @@ async def consultar(cpf: str = Query(...)):
 
 def _fmt_cpf(cpf: str) -> str:
     return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
-
-# O Vercel usará o arquivo api/index.py como entrada para a função
